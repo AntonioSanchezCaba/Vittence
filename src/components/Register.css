@@ -1,0 +1,151 @@
+/* Estilos generales */
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  min-height: 100vh; /* Centrado perfecto */
+  padding: 1rem;
+  color: #333;
+}
+
+/* Contenedor del registro */
+.register {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 2rem;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Efecto hover */
+.register:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Título */
+.register h2 {
+  margin-bottom: 1.2rem;
+  color: #333;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+/* Inputs */
+.register input {
+  width: 100%;
+  max-width: 300px; /* Tamaño original en pantallas grandes */
+  padding: 0.8rem;
+  margin: 0.4rem auto;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+  display: block;
+  box-sizing: border-box;
+}
+
+.register input:focus {
+  border-color: #667eea;
+  outline: none;
+}
+
+/* Botón */
+.register button {
+  width: 100%;
+  max-width: 300px; /* Tamaño original en pantallas grandes */
+  padding: 0.8rem;
+  margin: 0.5rem auto;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.register button[type="submit"] {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+}
+
+/* Efecto hover en el botón */
+.register button[type="submit"]:hover {
+  background: linear-gradient(135deg, #764ba2, #667eea);
+  transform: scale(1.02);
+}
+
+/* Texto inferior */
+.register p {
+  margin-top: 1rem;
+  color: #666;
+}
+
+.register a {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.register a:hover {
+  text-decoration: underline;
+}
+
+/* ✅ RESPONSIVE: Solo se ajustan los inputs en pantallas pequeñas */
+@media (max-width: 768px) {
+  .register {
+    padding: 1.8rem;
+    max-width: 85%;
+  }
+
+  .register h2 {
+    font-size: 1.6rem;
+  }
+
+  .register input,
+  .register button {
+    max-width: 270px; /* Se ajustan ligeramente en tablets */
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .register {
+    padding: 1.5rem;
+    max-width: 90%;
+  }
+
+  .register h2 {
+    font-size: 1.5rem;
+  }
+
+  .register input,
+  .register button {
+    max-width: 250px; /* Se ajustan más en móviles pequeños */
+    font-size: 0.9rem;
+    padding: 0.7rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .register {
+    padding: 1.2rem;
+    max-width: 95%;
+  }
+
+  .register h2 {
+    font-size: 1.4rem;
+  }
+
+  .register input,
+  .register button {
+    max-width: 230px; /* Último ajuste para móviles extra pequeños */
+    font-size: 0.85rem;
+  }
+}
