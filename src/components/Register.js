@@ -1,20 +1,52 @@
 import React, { useState } from "react";
-import { auth } from "../firebase";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "./Register.css";
+
+console.log("Auth0 Domain:", process.env.REACT_APP_AUTH0_DOMAIN);
+console.log("Auth0 Client ID:", process.env.REACT_APP_AUTH0_CLIENT_ID);
 
 const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      alert("Registration successful");
+      if (password.length < 8 || !/[0-9]/.test(password) || !/[!@#$%^&*]/.test(password)) {
+        alert("Password must be at least 8 characters long, contain at least one number, and one special character.");
+        return;
+      }
+
+      const username = email.split("@")[0]; // Genera un username basado en el correo
+
+      const response = await fetch(`https://${process.env.REACT_APP_AUTH0_DOMAIN}/dbconnections/signup`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          client_id: process.env.REACT_APP_AUTH0_CLIENT_ID,
+          email: email,
+          password: password,
+          username: username,
+          connection: "Username-Password-Authentication",
+        }),
+      });
+
+      const data = await response.json();
+      console.log("Auth0 response:", data);
+
+      if (response.ok) {
+        alert("Registration successful");
+        navigate("/login");
+      } else {
+        alert(`Error: ${data.message || "Failed to create user"}`);
+        throw new Error(data.description || "Failed to create user");
+      }
     } catch (error) {
-      alert(error.message);
+      console.error("Registration error:", error);
+      alert(error.message || "Failed to connect to Auth0");
     }
   };
 
@@ -37,7 +69,7 @@ const Register = () => {
         <button type="submit">Sign Up</button>
       </form>
       <p>
-        Already have an account? <Link to="/login">Sign In</Link>
+        Already have an account? <a href="/login">Sign In</a>
       </p>
     </div>
   );

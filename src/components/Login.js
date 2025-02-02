@@ -1,102 +1,127 @@
-import React, { useState } from "react";
-import { auth, googleProvider, facebookProvider, appleProvider } from "../firebase";
-import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import React, { useState, useEffect } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
 import { FaGoogle, FaFacebook, FaApple } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./Login.css";
 
 const Login = () => {
+  const { loginWithPopup, logout, user, isAuthenticated, getAccessTokenSilently } = useAuth0();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/inicio");
+    }
+  }, [isAuthenticated, navigate]);
+
+  const handlePopupLogin = async (connection) => {
+    try {
+      await loginWithPopup({
+        authorizationParams: {
+          connection,
+          scope: "openid profile email",
+        },
+      });
+      
+      const userInfo = await getAccessTokenSilently();
+      if (userInfo) {
+        console.log("User info:", userInfo);
+        navigate("/inicio");
+      } else {
+        throw new Error("Failed to retrieve user info");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("Error logging in. Please try again.");
+    }
+  };
+
+  const handleEmailPasswordLogin = async (e) => {
     e.preventDefault();
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      alert("Login successful");
-    } catch (error) {
-      alert(error.message);
-    }
-  };
+      const response = await fetch(`https://${process.env.REACT_APP_AUTH0_DOMAIN}/oauth/token`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          client_id: process.env.REACT_APP_AUTH0_CLIENT_ID,
+          grant_type: "http://auth0.com/oauth/grant-type/password-realm",
+          realm: "Username-Password-Authentication",
+          username: email,
+          password: password,
+          scope: "openid profile email",
+        }),
+      });
 
-  const handleGoogleLogin = async () => {
-    try {
-      await signInWithPopup(auth, googleProvider);
-      alert("Login with Google successful");
-    } catch (error) {
-      alert(error.message);
-    }
-  };
+      const data = await response.json();
+      console.log("Auth0 response:", data);
 
-  const handleFacebookLogin = async () => {
-    try {
-      await signInWithPopup(auth, facebookProvider);
-      alert("Login with Facebook successful");
+      if (data.access_token) {
+        alert("Login successful");
+        navigate("/inicio");
+      } else {
+        alert(data.error_description || "Incorrect password or email. Please try again.");
+      }
     } catch (error) {
-      alert(error.message);
-    }
-  };
-
-  const handleAppleLogin = async () => {
-    try {
-      await signInWithPopup(auth, appleProvider);
-      alert("Login with Apple successful");
-    } catch (error) {
-      alert(error.message);
+      console.error("Login error:", error);
+      alert("An error occurred while logging in. Please try again.");
     }
   };
 
   return (
     <div className="login-container">
-      {/* Left Section */}
       <div className="login-left">
-        <img src="/images/Vittence1.png" alt="Logo" />
+        <img src="/images/Vittence2.png" alt="Logo" />
       </div>
-
-      {/* Right Section */}
       <div className="login-right">
-        <h2>Sign In</h2>
-
-        {/* Social Media Buttons */}
-        <div className="social-buttons">
-          <button onClick={handleGoogleLogin} className="google-btn">
-            <FaGoogle className="social-icon" /> Sign up with Google
+        <h2>{isAuthenticated ? `Welcome, ${user?.name}` : "Sign In"}</h2>
+        {!isAuthenticated ? (
+          <>
+            <div className="social-buttons">
+              <button onClick={() => handlePopupLogin("google-oauth2")} className="google-btn">
+                <FaGoogle className="social-icon" /> Sign in with Google
+              </button>
+              <button onClick={() => handlePopupLogin("facebook")} className="facebook-btn">
+                <FaFacebook className="social-icon" /> Sign in with Facebook
+              </button>
+              <button onClick={() => handlePopupLogin("apple")} className="apple-btn">
+                <FaApple className="social-icon" /> Sign in with Apple
+              </button>
+            </div>
+            <div className="separator">
+              <span className="separator-text">- OR -</span>
+            </div>
+            <form onSubmit={handleEmailPasswordLogin}>
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="form-input"
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="form-input"
+              />
+              <button type="submit" className="submit-btn">Sign In</button>
+            </form>
+          </>
+        ) : (
+          <button onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })} className="logout-btn">
+            Log Out
           </button>
-          <button onClick={handleFacebookLogin} className="facebook-btn">
-            <FaFacebook className="social-icon" /> Sign up with Facebook
-          </button>
-          <button onClick={handleAppleLogin} className="apple-btn">
-            <FaApple className="social-icon" /> Sign up with Apple
-          </button>
-        </div>
-
-        <div className="separator">
-          <span className="separator-text">- OR -</span>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleLogin}>
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="form-input"
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="form-input"
-          />
-          <button type="submit" className="submit-btn">Sign In</button>
-        </form>
-
-        {/* Register Link */}
-        <p className="auth-link">
-          Don't have an account? <Link to="/register">Register</Link>
-        </p>
+        )}
+        {!isAuthenticated && (
+          <p className="auth-link">
+            Don't have an account? <Link to="/register">Register</Link>
+          </p>
+        )}
       </div>
     </div>
   );
